@@ -1,5 +1,4 @@
-# Minimal Prometheus Stack - İnternetsiz ortam için
-# Sadece Prometheus + gerekli componentler
+
 
 # Ana Prometheus ayarları
 prometheus:
@@ -57,7 +56,7 @@ prometheus:
           - source_labels: [__meta_kubernetes_namespace]
             target_label: namespace
 
-# Grafana'yı devre dışı bırak (zaten mevcut var)
+# Grafana'yı devre dışı bırak 
 grafana:
   enabled: false
 
