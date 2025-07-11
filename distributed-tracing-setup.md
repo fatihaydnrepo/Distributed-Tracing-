@@ -1,6 +1,6 @@
-# Distributed Tracing Setup Documentation
+# Distributed Tracing Setup
 
-Bu dokümantasyon, dağıtık izleme (distributed tracing) sistemimizin kurulum ve yapılandırma detaylarını içermektedir.
+Bu dokümantasyon, dağıtık izleme (distributed tracing) sistemimizin kurulum ve yapılandırma detaylarını içermektedir. Helm ile olan kurulumlarda ekstra olarak pv tanımının yapılması gerekmektedir.
 
 ## Genel Bakış
 
@@ -39,13 +39,7 @@ OpenTelemetry Collector, farklı kaynaklardan gelen telemetri verilerini toplar 
   - Jaeger (HTTP): Port 14268
   - Zipkin: Port 9411
 
-#### Resource İşlemleri:
 
-#### Kaynak Limitleri:
-```yaml
-CPU: 1000m (limit), 500m (request)
-Memory: 2Gi (limit), 1Gi (request)
-```
 
 ### 2. Tempo (Tracing Backend)
 ### 2. Tempo (Tracing Backend)
@@ -57,11 +51,6 @@ Tempo, Grafana Labs tarafından geliştirilen, yüksek ölçeklenebilir bir dist
 - Persistence: 10Gi (local-storage)
 - Storage Path: /home/ubuntu/logs/tempo
 
-#### Kaynak Limitleri:
-```yaml
-CPU: 500m (limit), 250m (request)
-Memory: 1Gi (limit), 512Mi (request)
-```
 
 ### 3. Loki (Log Aggregation)
 ### 3. Loki (Log Aggregation)
