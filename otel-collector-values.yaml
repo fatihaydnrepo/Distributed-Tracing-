@@ -1,0 +1,102 @@
+mode: deployment
+image:
+  repository: "otel/opentelemetry-collector"
+  tag: latest
+  pullPolicy: IfNotPresent
+
+config:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+    jaeger:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:14250
+        thrift_http:
+          endpoint: 0.0.0.0:14268
+    zipkin:
+      endpoint: 0.0.0.0:9411
+
+  processors:
+    batch:
+      timeout: 1s
+      send_batch_size: 1024
+    memory_limiter:
+      check_interval: 1s
+      limit_mib: 1024
+      spike_limit_mib: 256
+    resource:
+      attributes:
+        - key: cluster
+          value: kubernetes
+          action: upsert
+        - key: namespace
+          from_attribute: k8s.namespace.name
+          action: insert
+        - key: pod
+          from_attribute: k8s.pod.name
+          action: insert
+        - key: container
+          from_attribute: k8s.container.name
+          action: insert
+
+  exporters:
+    otlp/tempo:
+      endpoint: tempo.observability.svc.cluster.local:4317
+      tls:
+        insecure: true
+    debug: {}
+
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp, jaeger, zipkin]
+        processors: [memory_limiter, batch, resource]
+        exporters: [otlp/tempo, debug]
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+service:
+  type: ClusterIP
+
+ports:
+  otlp:
+    enabled: true
+    containerPort: 4317
+    servicePort: 4317
+    hostPort: 4317
+    protocol: TCP
+  otlp-http:
+    enabled: true
+    containerPort: 4318
+    servicePort: 4318
+    hostPort: 4318
+    protocol: TCP
+  jaeger-grpc:
+    enabled: true
+    containerPort: 14250
+    servicePort: 14250
+    hostPort: 14250
+    protocol: TCP
+  jaeger-thrift:
+    enabled: true
+    containerPort: 14268
+    servicePort: 14268
+    hostPort: 14268
+    protocol: TCP
+  zipkin:
+    enabled: true
+    containerPort: 9411
+    servicePort: 9411
+    hostPort: 9411
+    protocol: TCP

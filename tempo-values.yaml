@@ -1,0 +1,49 @@
+server:
+  http:
+    listen_address: 0.0.0.0
+    listen_port: 3200
+  grpc:
+    enabled: false        # gRPC servisini kapatıyoruz, sorun yaşadığın için
+
+ingester:
+  enabled: true
+
+distributor:
+  enabled: true
+
+querier:
+  enabled: true
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /data/tempo/traces
+
+compactor:
+  enabled: true
+
+metrics:
+  enabled: true
+
+service:
+  type: ClusterIP
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 512Mi
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClassName: local-storage
+  local:
+    path: /home/ubuntu/logs/tempo
+
+securityContext:
+  runAsUser: 10001
+  fsGroup: 2000

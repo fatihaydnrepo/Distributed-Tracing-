@@ -1,0 +1,128 @@
+# Minimal Prometheus Stack - İnternetsiz ortam için
+# Sadece Prometheus + gerekli componentler
+
+# Ana Prometheus ayarları
+prometheus:
+  enabled: true
+  prometheusSpec:
+    prometheusSpec:
+    # Mevcut image version'ını belirle
+    image:
+      registry: quay.io
+      repository: prometheus/prometheus
+      tag: v3.4.1
+    # Scrape interval'ları
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+    
+    # Storage ayarları
+    retention: 7d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: "local-storage"
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+    
+    # Tüm servisleri otomatik tarama
+    additionalScrapeConfigs:
+      - job_name: 'all-kubernetes-services-metrics'
+        kubernetes_sd_configs:
+          - role: service
+        metrics_path: /metrics
+        scrape_interval: 30s
+        scrape_timeout: 10s
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name]
+            target_label: service_name
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_service_port_name]
+            target_label: port_name
+      
+      - job_name: 'kubernetes-pods-metrics'
+        kubernetes_sd_configs:
+          - role: pod
+        metrics_path: /metrics
+        scrape_interval: 30s
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_phase]
+            action: keep
+            regex: Running
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod_name
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+
+# Grafana'yı devre dışı bırak (zaten mevcut var)
+grafana:
+  enabled: false
+
+# Alertmanager minimal
+alertmanager:
+  enabled: true
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'web.hook'
+    receivers:
+      - name: 'web.hook'
+
+# Node exporter - zaten var gibi görünüyor ama enable edelim
+prometheus-node-exporter:
+  enabled: true
+
+# Kube-state-metrics
+kube-state-metrics:
+  enabled: true
+
+# Default rules - minimal
+defaultRules:
+  create: true
+  rules:
+    alertmanager: false
+    etcd: false
+    configReloaders: false
+    general: true
+    k8s: true
+    kubeApiserverAvailability: false
+    kubeApiserverBurnrate: false
+    kubeApiserverHistogram: false
+    kubeApiserverSlos: false
+    kubelet: true
+    kubeProxy: false
+    kubePrometheusGeneral: true
+    kubePrometheusNodeRecording: true
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesStorage: false
+    kubernetesSystem: false
+    network: false
+    node: true
+    nodeExporterAlerting: false
+    nodeExporterRecording: false
+    prometheus: true
+    prometheusOperator: false
+
+# Kubernetes monitoring - sadece temel componentler
+kubeApiServer:
+  enabled: false
+kubeControllerManager:
+  enabled: false  
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubelet:
+  enabled: true
+

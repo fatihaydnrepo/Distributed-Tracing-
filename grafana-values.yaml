@@ -1,0 +1,108 @@
+adminUser: admin
+adminPassword: admin
+
+# Grafana config
+grafana.ini:
+  server:
+    root_url: http://localhost:3000
+  auth:
+    disable_login_form: false
+  log:
+    level: info
+  feature_toggles:
+    enable: tempoSearch tempoServiceGraph tempoApmTable traceToMetrics traceToLogs
+
+# Data sources provisioning
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      # Loki datasource
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki-gateway.observability.svc.cluster.local
+        jsonData:
+          maxLines: 1000
+          derivedFields:
+            - datasourceUid: tempo
+              matcherRegex: '"trace_id":"([^"]+)"'
+              name: TraceID
+              url: '$${__value.raw}'
+        version: 1
+        editable: true
+        isDefault: false
+
+      # Tempo datasource
+      - name: Tempo
+        type: tempo
+        access: proxy
+        url: http://tempo.observability.svc.cluster.local:3200
+        jsonData:
+          nodeGraph:
+            enabled: true
+          search:
+            hide: false
+          lokiSearch:
+            datasourceUid: loki
+          traceQuery:
+            timeShiftEnabled: true
+            spanStartTimeShift: '1h'
+            spanEndTimeShift: '-1h'
+          serviceMap:
+            datasourceUid: prometheus
+          tracesToMetrics:
+            datasourceUid: prometheus
+            tags: 
+              - key: service.name
+                value: service
+              - key: job
+            queries:
+              - name: Sample query
+                query: 'sum(rate(traces_spanmetrics_latency_bucket{$__tags}[5m]))'
+          tracesToLogs:
+            datasourceUid: loki
+            tags: 
+              - key: service.name
+                value: service
+              - key: pod
+            filterByTraceID: false
+            filterBySpanID: false
+            mapTagNamesEnabled: true
+            mappedTags:
+              - key: service.name
+                value: service
+        version: 1
+        editable: true
+        uid: tempo
+
+# Persistence
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClassName: "local-storage"
+  local:
+    path: /home/ubuntu/logs/grafana
+
+
+
+# Service
+service:
+  type: ClusterIP # veya NodePort/ClusterIP
+
+# Ingress (optional)
+ingress:
+  enabled: false
+  # annotations:
+  #   kubernetes.io/ingress.class: nginx
+  # hosts:
+  #   - grafana.example.com
+
+# Sidecar for dashboards
+sidecar:
+  dashboards:
+    enabled: true
+    provider:
+      allowUiUpdates: true
+  datasources:
+    enabled: true
