@@ -3,7 +3,7 @@ server:
     listen_address: 0.0.0.0
     listen_port: 3200
   grpc:
-    enabled: false        # gRPC servisini kapatıyoruz, sorun yaşadığın için
+    enabled: false        
 
 ingester:
   enabled: true
