@@ -42,7 +42,6 @@ OpenTelemetry Collector, farklı kaynaklardan gelen telemetri verilerini toplar 
 
 
 ### 2. Tempo (Tracing Backend)
-### 2. Tempo (Tracing Backend)
 Tempo, Grafana Labs tarafından geliştirilen, yüksek ölçeklenebilir bir distributed tracing backend'idir.
 
 #### Önemli Yapılandırmalar:
