@@ -76,7 +76,7 @@ alertmanager:
     receivers:
       - name: 'web.hook'
 
-# Node exporter - zaten var gibi görünüyor ama enable edelim
+# Node exporter 
 prometheus-node-exporter:
   enabled: true
 
